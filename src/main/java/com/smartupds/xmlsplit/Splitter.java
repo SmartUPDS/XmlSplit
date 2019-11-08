@@ -18,6 +18,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import lombok.extern.log4j.Log4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -32,6 +33,7 @@ import org.xml.sax.SAXException;
 /**
  * @author Yannis Marketakis
  */
+@Log4j
 public class Splitter {
     static final CommandLineParser PARSER = new DefaultParser();
     static Options options = new Options();
@@ -69,7 +71,7 @@ public class Splitter {
                .addOption(sizeOption);
     }
     
-    public void split() throws SAXException, IOException, ParserConfigurationException, XPathExpressionException, TransformerException{
+    public void split(File exportFolder) throws SAXException, IOException, ParserConfigurationException, XPathExpressionException, TransformerException{
         DocumentBuilderFactory dbFactory=DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder=dbFactory.newDocumentBuilder();
         Document doc=dBuilder.parse(this.originalFile);
@@ -81,7 +83,7 @@ public class Splitter {
         XPath xpath = xfactory.newXPath();
         XPathExpression allIterNodesExpression = xpath.compile("//"+this.rootElementName+"/"+this.iterElementName);
         NodeList iterNodes = (NodeList) allIterNodesExpression.evaluate(doc, XPathConstants.NODESET);
-        System.out.println("Found "+iterNodes.getLength()+" distinct elements");
+        log.info("Found "+iterNodes.getLength()+" distinct elements");
         
         int partialFileSize=0;
         Document partialXml = dBuilder.newDocument();
@@ -93,14 +95,14 @@ public class Splitter {
             partialXml.adoptNode(clonedNode);
             newRootElement.appendChild(clonedNode);
             if(partialFileSize>this.fileSize){
-                exportPartialFile(partialXml);
+                exportPartialFile(exportFolder,partialXml);
                 partialXml=dBuilder.newDocument();
                 newRootElement=partialXml.createElement(this.rootElementName);
                 partialXml.appendChild(newRootElement);
                 partialFileSize=0;
             }   
         }
-        exportPartialFile(partialXml);   
+        exportPartialFile(exportFolder,partialXml);   
     }
     
     private int getElementSize(Node node) throws TransformerConfigurationException, TransformerException{
@@ -110,15 +112,19 @@ public class Splitter {
         return writer.toString().length();
     }
     
-    private void exportPartialFile(Document doc) throws TransformerException{
+    private void exportPartialFile(File exportFolder,Document doc) throws TransformerException{
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
         Transformer transformer = transformerFactory.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         DOMSource source = new DOMSource(doc);
-        File newFile=new File(this.originalFile.getName().replace(".xml", "-part_")+newFileCounter+".xml");
+        String filePath=this.originalFile.getName().replace(".xml", "-part_")+newFileCounter+".xml";
+        if(exportFolder!=null){
+            filePath=exportFolder.getAbsolutePath()+"/"+filePath;
+        }
+        File newFile=new File(filePath);
         StreamResult result =  new StreamResult(newFile);
         transformer.transform(source, result);
-        System.out.println("Exported file "+newFile.getName());
+        log.info("Exported file "+newFile.getName());
         newFileCounter++;
             
     }
@@ -129,7 +135,7 @@ public class Splitter {
         CommandLine cli = PARSER.parse(options, args);
         Splitter splitter=new Splitter(new File(cli.getOptionValue("file")),cli.getOptionValue("root"), cli.getOptionValue("element"), Integer.parseInt(cli.getOptionValue("size")));
 //        Splitter splitter=new Splitter(new File("originalFile.xml"),"dataroot", "COIN", 10);
-        splitter.split();
+        splitter.split(null);
 
         
     }
