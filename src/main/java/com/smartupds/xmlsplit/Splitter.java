@@ -18,12 +18,13 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import lombok.extern.log4j.Log4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -33,7 +34,6 @@ import org.xml.sax.SAXException;
 /**
  * @author Yannis Marketakis
  */
-@Log4j
 public class Splitter {
     static final CommandLineParser PARSER = new DefaultParser();
     static Options options = new Options();
@@ -43,6 +43,7 @@ public class Splitter {
     private StringBuilder outputBuilder;
     private File originalFile;
     private static int newFileCounter=1;
+    public static final Logger log=LogManager.getLogger(Splitter.class);
     
     public Splitter (File originalFile, String rootElem, String iterElem, int size){
         this.originalFile=originalFile;
