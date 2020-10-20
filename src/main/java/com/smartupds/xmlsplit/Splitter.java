@@ -39,17 +39,17 @@ public class Splitter {
     static Options options = new Options();
     private String rootElementName;
     private String iterElementName;
-    private int fileSize;
+    private long fileSize;
     private StringBuilder outputBuilder;
     private File originalFile;
     private static int newFileCounter=1;
     public static final Logger log=LogManager.getLogger(Splitter.class);
     
-    public Splitter (File originalFile, String rootElem, String iterElem, int size){
+    public Splitter (File originalFile, String rootElem, String iterElem, double size){
         this.originalFile=originalFile;
         this.rootElementName=rootElem;
         this.iterElementName=iterElem;
-        this.fileSize=size*1024*1024;
+        this.fileSize=Math.round(size*1024*1024);
         this.outputBuilder=new StringBuilder();
     }
             
@@ -134,10 +134,7 @@ public class Splitter {
         createOptionsList();
         
         CommandLine cli = PARSER.parse(options, args);
-        Splitter splitter=new Splitter(new File(cli.getOptionValue("file")),cli.getOptionValue("root"), cli.getOptionValue("element"), Integer.parseInt(cli.getOptionValue("size")));
-//        Splitter splitter=new Splitter(new File("originalFile.xml"),"dataroot", "COIN", 10);
+        Splitter splitter=new Splitter(new File(cli.getOptionValue("file")),cli.getOptionValue("root"), cli.getOptionValue("element"), Double.parseDouble(cli.getOptionValue("size")));
         splitter.split(null);
-
-        
     }
 }
