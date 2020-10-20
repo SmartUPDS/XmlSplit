@@ -18,12 +18,13 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import lombok.extern.log4j.Log4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -33,7 +34,6 @@ import org.xml.sax.SAXException;
 /**
  * @author Yannis Marketakis
  */
-@Log4j
 public class Splitter {
     static final CommandLineParser PARSER = new DefaultParser();
     static Options options = new Options();
@@ -43,12 +43,13 @@ public class Splitter {
     private StringBuilder outputBuilder;
     private File originalFile;
     private static int newFileCounter=1;
+    public static final Logger log=LogManager.getLogger(Splitter.class);
     
     public Splitter (File originalFile, String rootElem, String iterElem, double size){
         this.originalFile=originalFile;
         this.rootElementName=rootElem;
         this.iterElementName=iterElem;
-        this.fileSize=size*1024*1024;
+        this.fileSize=Math.round(size*1024*1024);
         this.outputBuilder=new StringBuilder();
     }
             
@@ -65,10 +66,13 @@ public class Splitter {
         Option sizeOption = new Option("s", "size", true,"The file size in MB");
         sizeOption.setRequired(true);
         
+        Option directoryOption = new Option("d", "directory", true,"Export directory");
+        
         options.addOption(fileOption)
                .addOption(rootElementOption)
                .addOption(iterElementOption)
-               .addOption(sizeOption);
+               .addOption(sizeOption)
+               .addOption(directoryOption);
     }
     
     public void split(File exportFolder) throws SAXException, IOException, ParserConfigurationException, XPathExpressionException, TransformerException{
@@ -134,9 +138,9 @@ public class Splitter {
         
         CommandLine cli = PARSER.parse(options, args);
         Splitter splitter=new Splitter(new File(cli.getOptionValue("file")),cli.getOptionValue("root"), cli.getOptionValue("element"), Double.parseDouble(cli.getOptionValue("size")));
-//        Splitter splitter=new Splitter(new File("originalFile.xml"),"dataroot", "COIN", 10);
-        splitter.split(null);
-
-        
+        if (cli.hasOption("d"))
+            splitter.split(new File(cli.getOptionValue("d")));
+        else
+            splitter.split(null);
     }
 }
