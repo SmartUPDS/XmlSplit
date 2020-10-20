@@ -39,12 +39,12 @@ public class Splitter {
     static Options options = new Options();
     private String rootElementName;
     private String iterElementName;
-    private int fileSize;
+    private double fileSize;
     private StringBuilder outputBuilder;
     private File originalFile;
     private static int newFileCounter=1;
     
-    public Splitter (File originalFile, String rootElem, String iterElem, int size){
+    public Splitter (File originalFile, String rootElem, String iterElem, double size){
         this.originalFile=originalFile;
         this.rootElementName=rootElem;
         this.iterElementName=iterElem;
@@ -85,7 +85,7 @@ public class Splitter {
         NodeList iterNodes = (NodeList) allIterNodesExpression.evaluate(doc, XPathConstants.NODESET);
         log.info("Found "+iterNodes.getLength()+" distinct elements");
         
-        int partialFileSize=0;
+        double partialFileSize=0;
         Document partialXml = dBuilder.newDocument();
         Element newRootElement=partialXml.createElement(this.rootElementName);
         partialXml.appendChild(newRootElement);
@@ -133,7 +133,7 @@ public class Splitter {
         createOptionsList();
         
         CommandLine cli = PARSER.parse(options, args);
-        Splitter splitter=new Splitter(new File(cli.getOptionValue("file")),cli.getOptionValue("root"), cli.getOptionValue("element"), Integer.parseInt(cli.getOptionValue("size")));
+        Splitter splitter=new Splitter(new File(cli.getOptionValue("file")),cli.getOptionValue("root"), cli.getOptionValue("element"), Double.parseDouble(cli.getOptionValue("size")));
 //        Splitter splitter=new Splitter(new File("originalFile.xml"),"dataroot", "COIN", 10);
         splitter.split(null);
 
